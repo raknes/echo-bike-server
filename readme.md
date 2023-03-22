@@ -31,7 +31,7 @@ node -v
 
 sudo apt install build-essential
 
-npm i -g pnpm
+npm i -g pnpm pm2
 ```
 
 ### Build app
@@ -39,5 +39,22 @@ npm i -g pnpm
 ```
 wget https://github.com/raknes/echo-bike-server/tarball/master -O - | tar -xz --strip 1
 pnpm i
+pnpm build
+```
 
+### Install app as service
+
+```
+pm2 start dist/index.js
+pm2 startup systemd
+
+# pm2 generates a command to be run
+# copy generated command and run it
+sudo env PATH=...
+
+pm2 save
+
+pm2 list
+pm2 status
+pm2 show app
 ```
