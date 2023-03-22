@@ -1,5 +1,5 @@
 import { Characteristic, Descriptor } from "@abandonware/bleno";
-import { CadenceSupported, ElapsedTimeSupported, FTMS_FEATURE_UUID, FTMS_USER_DESCRIPTION_UUID, PowerMeasurementSupported } from "../constants";
+import { AverageSpeedSupported, CadenceSupported, FTMS_FEATURE_UUID, FTMS_USER_DESCRIPTION_UUID, HeartRateMeasurementSupported, PowerMeasurementSupported } from "../constants";
 
 export class FitnessMachineFeatureCharacteristic extends  Characteristic {
   constructor() {
@@ -22,7 +22,7 @@ export class FitnessMachineFeatureCharacteristic extends  Characteristic {
     let flags = Buffer.alloc(8);
 
     // 4.3.1.1 Fitness Machine Features Field
-    flags.writeUInt32LE(CadenceSupported | PowerMeasurementSupported | ElapsedTimeSupported);
+    flags.writeUInt32LE(CadenceSupported | PowerMeasurementSupported | AverageSpeedSupported | HeartRateMeasurementSupported);
 
     // 4.3.1.2 Target Setting Features Field
     flags.writeUInt32LE(0x0, 4);

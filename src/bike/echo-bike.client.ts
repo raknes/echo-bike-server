@@ -95,14 +95,14 @@ class EchoBikeClient extends events.EventEmitter {
   }
 
   private parseData(buffer: Buffer) {
-
+    console.log(buffer.toString('hex'));
     this.state = {
       instantaneousSpeed: buffer.readUInt16LE(2) / 100,
       instantaneousCadence: buffer.readUInt16LE(6) / 2,
       totalDistance: this.readUInt24New(buffer, 10) / 1000,
       instantaneousPower: buffer.readUInt16LE(13),
-      heartRate: buffer.readUInt8(15),
       totalEnergy: buffer.readUInt8(17),
+      heartRate: buffer.readIntLE(22, 1),
       elapsedTime: buffer.readUInt8(23),
     };
 

@@ -1,5 +1,5 @@
 import { Characteristic, Descriptor } from "@abandonware/bleno";
-import { FTMS_INDOOR_BIKE_DATA_UUID, FTMS_USER_DESCRIPTION_UUID, InstantaneousCadencePresent, InstantaneousPowerPresent } from "../constants";
+import { FTMS_INDOOR_BIKE_DATA_UUID, FTMS_USER_DESCRIPTION_UUID, HeartRatePresent, InstantaneousCadencePresent, InstantaneousPowerPresent } from "../constants";
 import { IndoorBikeData } from "../models/indoor-bike-data";
 
 /**
@@ -62,7 +62,15 @@ export class IndoorBikeDataCharacteristic extends Characteristic {
       offset += 2;
     }
 
-    // Write the available data field flags
+    if ('heartRate' in event) {
+      flags |= HeartRatePresent;
+
+      console.debug('hr(bpm): ' + event.heartRate);
+      buffer.writeUInt16LE(event.heartRate, offset);
+      offset += 2;
+    }
+
+    //Write the available data field flags
     flagField.writeUInt16LE(flags);
 
     let finalbuffer = buffer.subarray(0, offset);
