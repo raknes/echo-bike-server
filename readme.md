@@ -39,9 +39,9 @@ sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
 ### Build app
 
 ```
+mkdir app && cd app
 wget https://github.com/raknes/echo-bike-server/tarball/master -O - | tar -xz --strip 1
-pnpm i
-pnpm build
+pnpm i && pnpm build
 ```
 
 ### Install app as service

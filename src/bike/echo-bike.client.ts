@@ -76,10 +76,8 @@ class EchoBikeClient extends events.EventEmitter {
   async scan(serviceUUIDs?: string[] | undefined, filter = (peripheral: noble.Peripheral) => true) {
     const promise = new Promise<Peripheral | null>((resolve, reject) => {
 
-      const timer = setTimeout(() => reject(), 10000);
       noble.on('discover', (peripheral) => {
         if (filter(peripheral)) {
-          clearTimeout(timer);
           console.log('found', peripheral.advertisement.localName);
           resolve(peripheral);
         }
