@@ -24,13 +24,14 @@ class EchoBikeClient extends events.EventEmitter {
   async init() {
     this.peripheral = await this.scan([FTMS_SERVICE_UUID]);
     if (!this.peripheral) {
+      console.error('No peripheral found');
       throw new Error('No peripheral found');
     }
+    try {
+
     this.peripheral.on('disconnect', () => console.log('disconnected'));
     console.log('connecting to bike');
     await this.peripheral.connectAsync();
-
-    try {
 
       const { characteristics: controlPointCharacteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
         [FTMS_SERVICE_UUID], [FTMS_CONTROL_POINT_UUID]
@@ -102,7 +103,7 @@ class EchoBikeClient extends events.EventEmitter {
       totalDistance: this.readUInt24New(buffer, 10) / 1000,
       instantaneousPower: buffer.readUInt16LE(13),
       totalEnergy: buffer.readUInt8(17),
-      heartRate: buffer.readIntLE(22, 1),
+      heartRate: buffer.readUInt8(22),
       elapsedTime: buffer.readUInt8(23),
     };
 

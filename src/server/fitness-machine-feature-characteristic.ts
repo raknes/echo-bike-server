@@ -22,7 +22,7 @@ export class FitnessMachineFeatureCharacteristic extends  Characteristic {
     let flags = Buffer.alloc(8);
 
     // 4.3.1.1 Fitness Machine Features Field
-    flags.writeUInt32LE(CadenceSupported | PowerMeasurementSupported | AverageSpeedSupported | HeartRateMeasurementSupported);
+    flags.writeUInt32LE(HeartRateMeasurementSupported | AverageSpeedSupported | CadenceSupported | PowerMeasurementSupported);
 
     // 4.3.1.2 Target Setting Features Field
     flags.writeUInt32LE(0x0, 4);

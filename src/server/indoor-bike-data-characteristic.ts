@@ -1,5 +1,5 @@
 import { Characteristic, Descriptor } from "@abandonware/bleno";
-import { FTMS_INDOOR_BIKE_DATA_UUID, FTMS_USER_DESCRIPTION_UUID, HeartRatePresent, InstantaneousCadencePresent, InstantaneousPowerPresent } from "../constants";
+import { FTMS_INDOOR_BIKE_DATA_UUID, FTMS_USER_DESCRIPTION_UUID, InstantaneousCadencePresent, InstantaneousPowerPresent } from "../constants";
 import { IndoorBikeData } from "../models/indoor-bike-data";
 
 /**
@@ -42,7 +42,7 @@ export class IndoorBikeDataCharacteristic extends Characteristic {
 
     // Speed must always be the first measurement, always present
     console.debug('speed(kmh): ' + event.instantaneousSpeed);
-    buffer.writeUInt16LE(event.instantaneousSpeed ?? 100, offset);
+    buffer.writeUInt16LE(event.instantaneousSpeed * 100 ?? 100, offset); // 0.01 Km/h
     offset += 2;
 
     if ('instantaneousCadence' in event) {
@@ -62,13 +62,13 @@ export class IndoorBikeDataCharacteristic extends Characteristic {
       offset += 2;
     }
 
-    if ('heartRate' in event) {
-      flags |= HeartRatePresent;
+    // if ('heartRate' in event) {
+    //   flags |= HeartRatePresent;
 
-      console.debug('hr(bpm): ' + event.heartRate);
-      buffer.writeUInt16LE(event.heartRate, offset);
-      offset += 2;
-    }
+    //   console.debug('hr(bpm): ' + event.heartRate);
+    //   buffer.writeUInt8(event.heartRate + 10, offset + 1);
+    //   offset += 1;
+    // }
 
     //Write the available data field flags
     flagField.writeUInt16LE(flags);

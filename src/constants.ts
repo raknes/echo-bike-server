@@ -1,7 +1,9 @@
 import { setBit } from './utils';
 
+export const FTMS_HEART_RATE_SERVICE_UUID = '180d';
 export const FTMS_SERVICE_UUID = '1826';
 export const FTMS_INDOOR_BIKE_DATA_UUID = '2ad2';
+export const FTMS_HEART_RATE_DATA_UUID = "2a37";
 export const FTMS_CONTROL_POINT_UUID = '2ad9';
 export const FTMS_USER_DESCRIPTION_UUID = '2901';
 export const FTMS_FEATURE_UUID = '2acc';

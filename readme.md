@@ -29,9 +29,11 @@ tar -zxf node-v18.5.0-linux-armv6l.tar.gz
 cp -r node-v18.5.0-linux-armv6l/ /usr/local
 node -v
 
-sudo apt install build-essential
+sudo apt install build-essential libcap2-bin
 
 npm i -g pnpm pm2
+
+sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
 ```
 
 ### Build app
