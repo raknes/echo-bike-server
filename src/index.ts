@@ -16,13 +16,13 @@ const ftmsService = new FitnessMachineService();
         if (error) {
           console.error(error);
         } else {
-          console.log('FTMS advertising started');
+          console.log('FTMS advertising started!');
           // bleno.setServices([ftmsService, hrService], (error: Error | null | undefined) => {
           bleno.setServices([ftmsService], (error: Error | null | undefined) => {
             if (error) {
               console.error(error);
             } else {
-              console.log('FTMS services set');
+              console.log('FTMS services set!');
             }
           });
         }

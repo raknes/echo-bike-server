@@ -24,16 +24,21 @@ sudo apt update && sudo apt upgrade
 ### Install node
 
 ```
+Manual:
 wget https://unofficial-builds.nodejs.org/download/release/v18.5.0/node-v18.5.0-linux-armv6l.tar.gz
 tar -zxf node-v18.5.0-linux-armv6l.tar.gz 
 cp -r node-v18.5.0-linux-armv6l/ /usr/local
 node -v
 
-sudo apt install build-essential libcap2-bin
+Or NVM:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 
-npm i -g pnpm pm2
+
+sudo apt install build-essential libcap2-bin node-gyp python g++
 
 sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
+
+npm i -g pnpm pm2
 ```
 
 ### Build app
