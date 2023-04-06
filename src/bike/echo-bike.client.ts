@@ -11,6 +11,7 @@ class EchoBikeClient extends events.EventEmitter {
   constructor() {
     super();
     this.state = {
+      flags: 0,
       instantaneousSpeed: 0,
       instantaneousCadence: 0,
       totalDistance: 0,
@@ -29,9 +30,9 @@ class EchoBikeClient extends events.EventEmitter {
     }
     try {
 
-    this.peripheral.on('disconnect', () => console.log('disconnected'));
-    console.log('connecting to bike');
-    await this.peripheral.connectAsync();
+      this.peripheral.on('disconnect', () => console.log('disconnected'));
+      console.log('connecting to bike');
+      await this.peripheral.connectAsync();
 
       const { characteristics: controlPointCharacteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
         [FTMS_SERVICE_UUID], [FTMS_CONTROL_POINT_UUID]
@@ -51,7 +52,7 @@ class EchoBikeClient extends events.EventEmitter {
       if (!this.indoorBike) {
         throw new Error('Indoor bike characteristic not found');
       }
-      await this.indoorBike.discoverDescriptorsAsync();
+      // await this.indoorBike.discoverDescriptorsAsync();
       console.log('subscribing to indoor bike');
       this.indoorBike.on('data', (data) => {
         this.parseData(data);
@@ -96,6 +97,7 @@ class EchoBikeClient extends events.EventEmitter {
   private parseData(buffer: Buffer) {
     console.log(buffer.toString('hex'));
     this.state = {
+      flags: buffer.readUint16LE(0),
       instantaneousSpeed: buffer.readUInt16LE(2) / 100,
       instantaneousCadence: buffer.readUInt16LE(6) / 2,
       totalDistance: this.readUInt24New(buffer, 10) / 1000,
@@ -104,6 +106,8 @@ class EchoBikeClient extends events.EventEmitter {
       heartRate: buffer.readUInt8(22),
       elapsedTime: buffer.readUInt8(23),
     };
+    // 101111011110
+    console.log('flags', this.state.flags);
 
     this.emit('data', this.state);
   }

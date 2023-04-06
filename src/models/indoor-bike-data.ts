@@ -1,4 +1,5 @@
 export type IndoorBikeData = {
+  flags: number;
   instantaneousSpeed: number;
   instantaneousCadence: number;
   totalDistance: number;
