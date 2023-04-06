@@ -1,9 +1,8 @@
 import bleno from '@abandonware/bleno';
-import echoBikeClient from './bike/echo-bike.client';
 import { FTMS_SERVICE_UUID } from './constants';
 import { FitnessMachineService } from './server/fitness-machine-service';
 
-const ftmsService = new FitnessMachineService(echoBikeClient);
+const ftmsService = new FitnessMachineService();
 // const hrService = new HeartRateService(echoBikeClient);
 (async () => {
   // Start advertising the FTMS service

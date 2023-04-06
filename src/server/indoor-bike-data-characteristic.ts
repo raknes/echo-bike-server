@@ -1,4 +1,6 @@
 import { Characteristic, Descriptor } from "@abandonware/bleno";
+import { Subscription } from "rxjs";
+import { getEchoBikeClient } from "../bike/echo-bike.client";
 import { FTMS_INDOOR_BIKE_DATA_UUID, FTMS_USER_DESCRIPTION_UUID, InstantaneousCadencePresent, InstantaneousPowerPresent } from "../constants";
 import { IndoorBikeData } from "../models/indoor-bike-data";
 
@@ -6,6 +8,7 @@ import { IndoorBikeData } from "../models/indoor-bike-data";
  * Notify clients about changes in indoor bike data values
  */
 export class IndoorBikeDataCharacteristic extends Characteristic {
+  private bikeSubscription: Subscription | null = null;
   private updateValueCallback: ((data: Buffer) => void) | null;
   constructor() {
     super({
@@ -23,11 +26,19 @@ export class IndoorBikeDataCharacteristic extends Characteristic {
 
   onSubscribe(maxValueSize: number, updateValueCallback: (data: Buffer) => void) {
     this.updateValueCallback = updateValueCallback;
+    console.log('IndoorBikeDataCharacteristic - onSubscribe');
+    getEchoBikeClient().then((bikeClient) => {
+      const bikeObservable = bikeClient.getObservable();
+      this.bikeSubscription = bikeObservable.subscribe((event) => this.notify(event));
+    });
     return this.RESULT_SUCCESS;
   };
 
   onUnsubscribe() {
     this.updateValueCallback = null;
+    if (this.bikeSubscription) {
+      this.bikeSubscription.unsubscribe();
+    }
     return this.RESULT_UNLIKELY_ERROR;
   };
 

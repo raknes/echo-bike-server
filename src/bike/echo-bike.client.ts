@@ -7,7 +7,7 @@ import { IndoorBikeData } from '../models/indoor-bike-data';
 class EchoBikeClient extends events.EventEmitter {
   private state: IndoorBikeData;
   private peripheral: noble.Peripheral | null = null;
-  private indoorBike: noble.Characteristic | undefined;
+  private indoorBike: noble.Characteristic | null = null;
   constructor() {
     super();
     this.state = {
@@ -23,6 +23,9 @@ class EchoBikeClient extends events.EventEmitter {
   }
 
   async init() {
+    if (this.peripheral) {
+      return;
+    }
     this.peripheral = await this.scan([FTMS_SERVICE_UUID]);
     if (!this.peripheral) {
       console.error('No peripheral found');
@@ -48,7 +51,7 @@ class EchoBikeClient extends events.EventEmitter {
       const { characteristics: indoorBikeCharacteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
         [FTMS_SERVICE_UUID], [FTMS_INDOOR_BIKE_DATA_UUID]
       );
-      this.indoorBike = indoorBikeCharacteristics.find(x => x.uuid === FTMS_INDOOR_BIKE_DATA_UUID);
+      this.indoorBike = indoorBikeCharacteristics.find(x => x.uuid === FTMS_INDOOR_BIKE_DATA_UUID) ?? null;
       if (!this.indoorBike) {
         throw new Error('Indoor bike characteristic not found');
       }
@@ -68,9 +71,11 @@ class EchoBikeClient extends events.EventEmitter {
     console.log('closing bike connection');
     if (this.indoorBike) {
       await this.indoorBike.unsubscribeAsync();
+      this.indoorBike = null;
     }
     if (this.peripheral) {
       await this.peripheral.disconnectAsync();
+      this.peripheral = null;
     }
   }
 
@@ -119,17 +124,20 @@ class EchoBikeClient extends events.EventEmitter {
 
     return a + b;
   }
+
+  public getObservable() {
+    return new Observable<IndoorBikeData>((subscriber) => {
+      console.log('got new subscriber, creating bike client');
+      this.on('data', (data: IndoorBikeData) => {
+        console.log('sending data to subscriber');
+        subscriber.next(data);
+      });
+    });
+  }
 }
+const bikeClient = new EchoBikeClient();
 
-const echoBikeClient = new Observable<IndoorBikeData>((subscriber) => {
-  console.log('got new subscriber');
-  const client = new EchoBikeClient();
-  client.on('data', (data: IndoorBikeData) => {
-    console.log('sending data to subscriber');
-    subscriber.next(data);
-  });
-
-  client.init().then(() => console.log('bike initialized'));
-});
-
-export default echoBikeClient;
+export async function getEchoBikeClient() {
+  await bikeClient.init();
+  return bikeClient;
+}
