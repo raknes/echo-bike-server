@@ -1,10 +1,13 @@
 import bleno from '@abandonware/bleno';
+import { getEchoBikeClient } from './bike/echo-bike.client';
 import { FTMS_SERVICE_UUID } from './constants';
 import { FitnessMachineService } from './server/fitness-machine-service';
 
 const ftmsService = new FitnessMachineService();
 // const hrService = new HeartRateService(echoBikeClient);
 (async () => {
+
+  const bikeClient = await getEchoBikeClient();
   // Start advertising the FTMS service
   bleno.on('stateChange', (state: string) => {
     console.log(`Bleno state: ${state}`);

@@ -31,6 +31,7 @@ export class IndoorBikeDataCharacteristic extends Characteristic {
       const bikeObservable = bikeClient.getObservable();
       this.bikeSubscription = bikeObservable.subscribe((event) => this.notify(event));
     });
+
     return this.RESULT_SUCCESS;
   };
 

@@ -26,44 +26,53 @@ class EchoBikeClient extends events.EventEmitter {
     if (this.peripheral) {
       return;
     }
-    this.peripheral = await this.scan([FTMS_SERVICE_UUID]);
-    if (!this.peripheral) {
-      console.error('No peripheral found');
-      throw new Error('No peripheral found');
-    }
-    try {
+    let isConnected = false;
 
-      this.peripheral.on('disconnect', () => console.log('disconnected'));
-      console.log('connecting to bike');
-      await this.peripheral.connectAsync();
+    while(!isConnected) {
+      try {
+        this.peripheral = await this.scan([FTMS_SERVICE_UUID]);
+        if (!this.peripheral) {
+          console.error('No peripheral found');
+          throw new Error('No peripheral found');
+        }
 
-      const { characteristics: controlPointCharacteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
-        [FTMS_SERVICE_UUID], [FTMS_CONTROL_POINT_UUID]
-      );
-      const [controlPoint] = controlPointCharacteristics;
-      await controlPoint.discoverDescriptorsAsync();
+        this.peripheral.on('disconnect', () => console.log('disconnected'));
+        console.log('connecting to bike');
+        await this.peripheral.connectAsync();
 
-      console.log('taking control');
-      let response = await controlPoint.writeAsync(Buffer.from("00", "hex"), false);
-      console.log('starting workout');
-      response = await controlPoint.writeAsync(Buffer.from("07", "hex"), false);
+        const { characteristics: controlPointCharacteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
+          [FTMS_SERVICE_UUID], [FTMS_CONTROL_POINT_UUID]
+        );
+        const [controlPoint] = controlPointCharacteristics;
+        await controlPoint.discoverDescriptorsAsync();
 
-      const { characteristics: indoorBikeCharacteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
-        [FTMS_SERVICE_UUID], [FTMS_INDOOR_BIKE_DATA_UUID]
-      );
-      this.indoorBike = indoorBikeCharacteristics.find(x => x.uuid === FTMS_INDOOR_BIKE_DATA_UUID) ?? null;
-      if (!this.indoorBike) {
-        throw new Error('Indoor bike characteristic not found');
+        console.log('taking control');
+        let response = await controlPoint.writeAsync(Buffer.from("00", "hex"), false);
+        console.log('starting workout');
+        response = await controlPoint.writeAsync(Buffer.from("07", "hex"), false);
+
+        const { characteristics: indoorBikeCharacteristics } = await this.peripheral.discoverSomeServicesAndCharacteristicsAsync(
+          [FTMS_SERVICE_UUID], [FTMS_INDOOR_BIKE_DATA_UUID]
+        );
+        this.indoorBike = indoorBikeCharacteristics.find(x => x.uuid === FTMS_INDOOR_BIKE_DATA_UUID) ?? null;
+        if (!this.indoorBike) {
+          throw new Error('Indoor bike characteristic not found');
+        }
+        // await this.indoorBike.discoverDescriptorsAsync();
+        console.log('subscribing to indoor bike');
+        this.indoorBike.on('data', (data) => {
+          this.parseData(data);
+        });
+        this.indoorBike.subscribeAsync();
+        isConnected = true;
+      } catch (error) {
+        console.error('failed to set up bike subscription', error);
+        if (this.peripheral) {
+          await this.peripheral.disconnectAsync();
+        }
+        console.log('Sleeping for 10 seconds before retrying...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
       }
-      // await this.indoorBike.discoverDescriptorsAsync();
-      console.log('subscribing to indoor bike');
-      this.indoorBike.on('data', (data) => {
-        this.parseData(data);
-      });
-      this.indoorBike.subscribeAsync();
-    } catch (error) {
-      console.error('failed to set up bike subscription', error);
-      await this.peripheral.disconnectAsync();
     }
   }
 
@@ -100,7 +109,7 @@ class EchoBikeClient extends events.EventEmitter {
   }
 
   private parseData(buffer: Buffer) {
-    console.log(buffer.toString('hex'));
+    // console.log(buffer.toString('hex'));
     this.state = {
       flags: buffer.readUint16LE(0),
       instantaneousSpeed: buffer.readUInt16LE(2) / 100,
@@ -112,8 +121,7 @@ class EchoBikeClient extends events.EventEmitter {
       elapsedTime: buffer.readUInt8(23),
     };
     // 101111011110
-    console.log('flags', this.state.flags);
-
+    // console.log('flags', this.state.flags);
     this.emit('data', this.state);
   }
 
@@ -129,15 +137,18 @@ class EchoBikeClient extends events.EventEmitter {
     return new Observable<IndoorBikeData>((subscriber) => {
       console.log('got new subscriber, creating bike client');
       this.on('data', (data: IndoorBikeData) => {
-        console.log('sending data to subscriber');
         subscriber.next(data);
       });
     });
   }
 }
-const bikeClient = new EchoBikeClient();
+let bikeClient: EchoBikeClient | null = null;
 
 export async function getEchoBikeClient() {
-  await bikeClient.init();
+  if (!bikeClient) {
+    bikeClient = new EchoBikeClient();
+    await bikeClient.init();
+    console.log('bike client initialized');
+  }
   return bikeClient;
 }
